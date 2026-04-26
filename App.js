@@ -2,8 +2,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import React, { useContext } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { ExerciseProvider } from './context/ExerciseContext';
 import { AuthProvider, AuthContext } from './context/AuthContext';
@@ -23,14 +21,15 @@ function Navigation() {
 
   return (
     <NavigationContainer>
-      <StatusBar style={isDarkMode ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <Stack.Navigator 
         screenOptions={{
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.text,
           headerTitleStyle: { 
-            fontWeight: '600', 
+            fontWeight: '700', 
             color: colors.text,
+            fontSize: 17,
           },
           headerShadowVisible: false, 
           contentStyle: { backgroundColor: colors.background }
@@ -55,7 +54,7 @@ function Navigation() {
               options={{ 
                 title: 'Details', 
                 headerTransparent: true, 
-                headerTintColor: colors.text,
+                headerTintColor: '#FFFFFF',
               }} 
             />
             <Stack.Screen 

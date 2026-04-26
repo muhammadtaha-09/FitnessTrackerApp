@@ -46,8 +46,8 @@ export const AuthProvider = ({ children }) => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA' }}>
-        <ActivityIndicator size="large" color="#1A1A1A" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0D0D0D' }}>
+        <ActivityIndicator size="large" color="#C8F560" />
       </View>
     );
   }

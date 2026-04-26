@@ -35,9 +35,9 @@ export default function AddExerciseScreen({ navigation }) {
       <ScrollView bounces={false} contentContainerStyle={styles.scrollContent}>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Exercise Name</Text>
-          <View style={[styles.inputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-            <Ionicons name="barbell-outline" size={20} color={colors.secondaryText} style={styles.inputIcon} />
+          <Text style={[styles.label, { color: colors.secondaryText }]}>Exercise Name</Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="barbell-outline" size={18} color={colors.secondaryText} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder="e.g. Jumping Jacks"
@@ -49,9 +49,9 @@ export default function AddExerciseScreen({ navigation }) {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Description</Text>
-          <View style={[styles.inputContainer, styles.textAreaContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-            <Ionicons name="document-text-outline" size={20} color={colors.secondaryText} style={styles.inputIconTop} />
+          <Text style={[styles.label, { color: colors.secondaryText }]}>Description</Text>
+          <View style={[styles.inputContainer, styles.textAreaContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="document-text-outline" size={18} color={colors.secondaryText} style={styles.inputIconTop} />
             <TextInput
               style={[styles.input, styles.textArea, { color: colors.text }]}
               placeholder="How to perform the exercise..."
@@ -66,9 +66,11 @@ export default function AddExerciseScreen({ navigation }) {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Image URL <Text style={[styles.optional, { color: colors.secondaryText }]}>(Optional)</Text></Text>
-          <View style={[styles.inputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-            <Ionicons name="link-outline" size={20} color={colors.secondaryText} style={styles.inputIcon} />
+          <Text style={[styles.label, { color: colors.secondaryText }]}>
+            Image URL <Text style={{ fontWeight: '400', textTransform: 'none', color: colors.secondaryText }}>(Optional)</Text>
+          </Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="link-outline" size={18} color={colors.secondaryText} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder="https://example.com/image.jpg"
@@ -83,8 +85,13 @@ export default function AddExerciseScreen({ navigation }) {
 
         <View style={{ flex: 1 }} />
 
-        <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} activeOpacity={0.8} onPress={handleSave}>
-          <Text style={styles.buttonText}>Save Exercise</Text>
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: colors.primary }]} 
+          activeOpacity={0.8} 
+          onPress={handleSave}
+        >
+          <Ionicons name="checkmark" size={20} color={colors.accentText} style={{ marginRight: 8 }} />
+          <Text style={[styles.buttonText, { color: colors.accentText }]}>Save Exercise</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -95,7 +102,6 @@ export default function AddExerciseScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   scrollContent: {
     flexGrow: 1,
@@ -106,20 +112,16 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     marginBottom: 8,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  optional: {
-    fontWeight: '400',
-    textTransform: 'none',
+    letterSpacing: 1,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 24,
+    borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 16,
   },
@@ -127,35 +129,36 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   inputIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   inputIconTop: {
-    marginRight: 8,
-    marginTop: 14,
+    marginRight: 10,
+    marginTop: 16,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    paddingVertical: 14,
+    fontSize: 15,
+    paddingVertical: 16,
   },
   textArea: {
     minHeight: 120,
-    paddingTop: 14,
+    paddingTop: 16,
   },
   button: {
-    paddingVertical: 18,
-    borderRadius: 30,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 18,
+    borderRadius: 16,
     marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowColor: '#C8F560',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 6,
   },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   }
 });

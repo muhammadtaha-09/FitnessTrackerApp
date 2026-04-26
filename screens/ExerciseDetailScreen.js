@@ -13,15 +13,15 @@ export default function ExerciseDetailScreen({ route, navigation }) {
 
   if (!exercise) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Exercise not found.</Text>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.secondaryText }]}>Exercise not found.</Text>
       </View>
     );
   }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} bounces={false}>
-      <View style={[styles.imageContainer, { backgroundColor: colors.cardBackground }]}>
+      <View style={styles.imageContainer}>
         {exercise.image ? (
           <Image 
             source={{ uri: exercise.image }} 
@@ -29,23 +29,26 @@ export default function ExerciseDetailScreen({ route, navigation }) {
             resizeMode="cover"
           />
         ) : (
-          <View style={styles.placeholderImage}>
+          <View style={[styles.placeholderImage, { backgroundColor: colors.cardBackground }]}>
             <Ionicons name="image-outline" size={48} color={colors.secondaryText} />
           </View>
         )}
+        <View style={styles.imageOverlay} />
       </View>
       
-      <View style={[styles.contentContainer, { backgroundColor: colors.cardBackground, shadowColor: isDarkMode ? '#000' : '#000' }]}>
+      <View style={[styles.contentContainer, { backgroundColor: colors.background }]}>
         <View style={styles.headerRow}>
           <Text style={[styles.title, { color: colors.text }]}>{exercise.name}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: colors.background }]}>
+          <View style={[styles.statusBadge, { 
+            backgroundColor: exercise.completed ? 'rgba(50,215,75,0.15)' : 'rgba(255,255,255,0.08)' 
+          }]}>
             <Ionicons 
               name={exercise.completed ? "checkmark-circle" : "time-outline"} 
-              size={16} 
-              color={exercise.completed ? "#34C759" : colors.secondaryText} 
+              size={14} 
+              color={exercise.completed ? colors.success : colors.secondaryText} 
               style={styles.statusIcon}
             />
-            <Text style={[styles.statusText, { color: exercise.completed ? "#34C759" : colors.secondaryText }]}>
+            <Text style={[styles.statusText, { color: exercise.completed ? colors.success : colors.secondaryText }]}>
               {exercise.completed ? 'Completed' : 'Pending'}
             </Text>
           </View>
@@ -53,15 +56,15 @@ export default function ExerciseDetailScreen({ route, navigation }) {
 
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        <Text style={[styles.descriptionHeader, { color: colors.secondaryText }]}>Instruction</Text>
+        <Text style={[styles.descriptionHeader, { color: colors.primary }]}>INSTRUCTION</Text>
         <Text style={[styles.description, { color: colors.text }]}>{exercise.description}</Text>
 
         <TouchableOpacity 
           style={[
             styles.button, 
             exercise.completed 
-              ? [styles.buttonPending, { borderColor: colors.border, backgroundColor: colors.cardBackground }] 
-              : [styles.buttonCompleted, { backgroundColor: colors.primary }]
+              ? { borderColor: colors.border, borderWidth: 1, backgroundColor: 'transparent' }
+              : { backgroundColor: colors.primary }
           ]} 
           activeOpacity={0.8}
           onPress={() => toggleComplete(exercise.id)}
@@ -69,9 +72,9 @@ export default function ExerciseDetailScreen({ route, navigation }) {
           <Ionicons 
             name={exercise.completed ? "arrow-undo-outline" : "checkmark-outline"} 
             size={20} 
-            color={exercise.completed ? colors.text : "#FFFFFF"} 
+            color={exercise.completed ? colors.text : colors.accentText} 
           />
-          <Text style={[styles.buttonText, exercise.completed ? { color: colors.text } : { color: '#FFFFFF' }]}>
+          <Text style={[styles.buttonText, { color: exercise.completed ? colors.text : colors.accentText }]}>
             {exercise.completed ? 'Mark as Incomplete' : 'Complete Exercise'}
           </Text>
         </TouchableOpacity>
@@ -83,18 +86,15 @@ export default function ExerciseDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   errorText: {
-    color: '#1A1A1A',
     fontSize: 16,
     textAlign: 'center',
     marginTop: 50,
   },
   imageContainer: {
     width: '100%',
-    height: 350,
-    backgroundColor: '#F2F2F7',
+    height: 340,
   },
   image: {
     width: '100%',
@@ -106,19 +106,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
   contentContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    marginTop: -40,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    marginTop: -32,
     padding: 24,
-    paddingTop: 32,
+    paddingTop: 28,
     minHeight: 500,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 8,
   },
   headerRow: {
     flexDirection: 'row',
@@ -128,16 +126,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1A1A1A',
+    fontSize: 26,
+    fontWeight: '800',
     flex: 1,
     marginRight: 10,
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -147,29 +143,21 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontWeight: '600',
-    fontSize: 13,
-    color: '#8E8E93',
-  },
-  statusTextCompleted: {
-    color: '#34C759',
+    fontSize: 12,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E5EA',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   descriptionHeader: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 10,
+    letterSpacing: 1.5,
   },
   description: {
-    fontSize: 16,
-    color: '#333333',
-    lineHeight: 26,
+    fontSize: 15,
+    lineHeight: 24,
     marginBottom: 40,
   },
   button: {
@@ -177,24 +165,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 18,
-    borderRadius: 30,
+    borderRadius: 16,
     marginTop: 'auto',
   },
-  buttonCompleted: {
-    backgroundColor: '#1A1A1A', // Minimalist black
-  },
-  buttonPending: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D1D1D6',
-  },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     marginLeft: 8,
   },
-  buttonTextPending: {
-    color: '#1A1A1A',
-  }
 });

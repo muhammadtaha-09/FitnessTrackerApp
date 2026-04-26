@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Dimensions, SafeAreaView, Alert, Platform, StatusBar } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Dimensions, SafeAreaView, Alert, Platform, StatusBar, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ExerciseContext } from '../context/ExerciseContext';
 import { ThemeContext } from '../context/ThemeContext';
@@ -21,66 +21,62 @@ export default function HomeScreen({ navigation }) {
   const { user } = useContext(AuthContext);
   
   const [quote, setQuote] = useState('');
-  const [activeTab, setActiveTab] = useState('Categories');
   const [showFavorites, setShowFavorites] = useState(false);
-  const [remindersOn, setRemindersOn] = useState(false);
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * QUOTES.length);
     setQuote(QUOTES[randomIndex]);
   }, []);
 
-  const handleToggleReminders = () => {
-    const newState = !remindersOn;
-    setRemindersOn(newState);
-    Alert.alert(
-      "Reminders", 
-      newState ? "Daily reminders have been turned ON." : "Daily reminders have been turned OFF."
-    );
-  };
-
-  // Filter exercises based on tabs and favorites
+  // Filter exercises based on favorites
   const filteredExercises = exercises.filter(ex => {
     if (showFavorites && !ex.isFavorite) return false;
-    if (activeTab === 'Your Sessions' && !ex.completed) return false;
     return true;
   });
 
-  const renderItem = ({ item }) => (
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
+  const renderItem = ({ item, index }) => (
     <TouchableOpacity 
       style={[styles.cardContainer, { backgroundColor: colors.cardBackground }]} 
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       onPress={() => navigation.navigate('ExerciseDetail', { id: item.id })}
     >
-      <View style={styles.cardContent}>
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.thumbnail} />
-        ) : (
-          <View style={[styles.thumbnail, { backgroundColor: colors.background }]}>
-            <Ionicons name="barbell-outline" size={28} color={colors.text} />
-          </View>
-        )}
-        
-        <View style={styles.cardTextContainer}>
-          <Text style={[styles.exerciseName, { color: colors.text }]} numberOfLines={1}>{item.name}</Text>
-          <Text style={[styles.exerciseDesc, { color: colors.secondaryText }]} numberOfLines={1}>{item.description}</Text>
+      {item.image ? (
+        <Image source={{ uri: item.image }} style={styles.cardImage} />
+      ) : (
+        <View style={[styles.cardImage, { backgroundColor: colors.cardBackgroundAlt, alignItems: 'center', justifyContent: 'center' }]}>
+          <Ionicons name="barbell-outline" size={40} color={colors.secondaryText} />
         </View>
-
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.actionIcon}>
+      )}
+      
+      <View style={styles.cardOverlay} />
+      
+      <View style={styles.cardInfo}>
+        <View style={styles.cardInfoLeft}>
+          <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.cardSubtitle} numberOfLines={1}>{item.description}</Text>
+        </View>
+        
+        <View style={styles.cardActions}>
+          <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.cardActionBtn}>
             <Ionicons 
               name={item.isFavorite ? "heart" : "heart-outline"} 
-              size={24} 
-              color={item.isFavorite ? "#FF3B30" : colors.border} 
+              size={20} 
+              color={item.isFavorite ? "#FF453A" : "rgba(255,255,255,0.7)"} 
             />
           </TouchableOpacity>
-          <View style={styles.actionIcon}>
-            {item.completed ? (
-              <Ionicons name="checkmark-circle" size={24} color="#34C759" /> 
-            ) : (
-              <Ionicons name="ellipse-outline" size={24} color={colors.border} /> 
-            )}
-          </View>
+          {item.completed && (
+            <View style={[styles.completedBadge, { backgroundColor: colors.primary }]}>
+              <Ionicons name="checkmark" size={12} color={colors.accentText} />
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -88,39 +84,87 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.backgroundCurve, { backgroundColor: colors.primary }]} />
+      <StatusBar barStyle="light-content" />
 
       <SafeAreaView style={{ flex: 1 }}>
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-              <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={styles.headerLeft}>
+              <View style={[styles.avatarCircle, { backgroundColor: colors.primary }]}>
+                <Text style={[styles.avatarText, { color: colors.accentText }]}>
+                  {user?.firstName?.charAt(0) || 'G'}
+                </Text>
+              </View>
+              <View style={styles.greetingBlock}>
+                <Text style={[styles.greetingSmall, { color: colors.secondaryText }]}>{getGreeting()}</Text>
+                <Text style={[styles.greetingName, { color: colors.text }]}>{user?.firstName || 'Guest'} 👋</Text>
+              </View>
+            </View>
+            
+            <View style={styles.headerRight}>
+              <TouchableOpacity 
+                onPress={() => setShowFavorites(!showFavorites)} 
+                style={[styles.headerIconBtn, { backgroundColor: showFavorites ? colors.primary : colors.cardBackground }]}
+              >
+                <Ionicons 
+                  name={showFavorites ? "heart" : "heart-outline"} 
+                  size={20} 
+                  color={showFavorites ? colors.accentText : colors.text} 
+                />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => navigation.navigate('Settings')} 
+                style={[styles.headerIconBtn, { backgroundColor: colors.cardBackground }]}
+              >
+                <Ionicons name="settings-outline" size={20} color={colors.text} />
+              </TouchableOpacity>
+            </View>
           </View>
           
-          <Text style={styles.greetingTitle}>Hello, {user?.firstName || 'Guest'}!</Text>
-          <Text style={styles.greetingSubtitle}>Choose your workout</Text>
-          <Text style={styles.quoteText}>"{quote}"</Text>
+          {/* Quote Card */}
+          <View style={[styles.quoteCard, { backgroundColor: colors.cardBackground, borderLeftColor: colors.primary }]}>
+            <Ionicons name="flame" size={16} color={colors.primary} style={{ marginRight: 8 }} />
+            <Text style={[styles.quoteText, { color: colors.secondaryText }]} numberOfLines={2}>"{quote}"</Text>
+          </View>
 
-          <View style={styles.tabsContainer}>
-            <TouchableOpacity 
-              style={[styles.tab, activeTab === 'Categories' && styles.activeTab]}
-              onPress={() => setActiveTab('Categories')}
-            >
-              <Text style={[styles.tabText, activeTab === 'Categories' && styles.activeTabText]}>Categories</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.tab, activeTab === 'Your Sessions' && styles.activeTab]}
-              onPress={() => setActiveTab('Your Sessions')}
-            >
-              <Text style={[styles.tabText, activeTab === 'Your Sessions' && styles.activeTabText]}>Your Sessions</Text>
-            </TouchableOpacity>
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={[styles.statCard, { backgroundColor: colors.cardBackground }]}>
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(200,245,96,0.15)' }]}>
+                <Ionicons name="fitness" size={18} color={colors.primary} />
+              </View>
+              <Text style={[styles.statNumber, { color: colors.text }]}>{exercises.length}</Text>
+              <Text style={[styles.statLabel, { color: colors.secondaryText }]}>Total</Text>
+            </View>
+            <View style={[styles.statCard, { backgroundColor: colors.cardBackground }]}>
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(50,215,75,0.15)' }]}>
+                <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+              </View>
+              <Text style={[styles.statNumber, { color: colors.text }]}>{exercises.filter(e => e.completed).length}</Text>
+              <Text style={[styles.statLabel, { color: colors.secondaryText }]}>Done</Text>
+            </View>
+            <View style={[styles.statCard, { backgroundColor: colors.cardBackground }]}>
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,69,58,0.15)' }]}>
+                <Ionicons name="heart" size={18} color={colors.danger} />
+              </View>
+              <Text style={[styles.statNumber, { color: colors.text }]}>{exercises.filter(e => e.isFavorite).length}</Text>
+              <Text style={[styles.statLabel, { color: colors.secondaryText }]}>Favs</Text>
+            </View>
+          </View>
+
+          {/* Section Title */}
+          <View style={styles.sectionTitleRow}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {showFavorites ? 'Favorites' : 'Workouts'}
+            </Text>
+            <View style={[styles.countBadge, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.countBadgeText, { color: colors.accentText }]}>{filteredExercises.length}</Text>
+            </View>
           </View>
         </View>
 
+        {/* Exercise List */}
         <FlatList
           data={filteredExercises}
           keyExtractor={(item) => item.id}
@@ -128,32 +172,24 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <Text style={{ textAlign: 'center', color: colors.secondaryText, marginTop: 40 }}>
-              No exercises found.
-            </Text>
+            <View style={styles.emptyContainer}>
+              <Ionicons name="heart-dislike-outline" size={48} color={colors.secondaryText} />
+              <Text style={[styles.emptyText, { color: colors.secondaryText }]}>
+                {showFavorites ? 'No favorites yet. Tap the heart icon on any workout!' : 'No exercises found.'}
+              </Text>
+            </View>
           }
         />
 
+        {/* FAB */}
         <TouchableOpacity 
           style={[styles.fab, { backgroundColor: colors.primary }]} 
           activeOpacity={0.9}
           onPress={() => navigation.navigate('AddExercise')}
         >
-          <Ionicons name="add" size={30} color="#FFFFFF" />
+          <Ionicons name="add" size={28} color={colors.accentText} />
         </TouchableOpacity>
       </SafeAreaView>
-
-      <View style={[styles.bottomNav, { backgroundColor: colors.navBackground }]}>
-        <TouchableOpacity style={styles.navItem} onPress={() => setShowFavorites(false)}>
-          <Ionicons name={!showFavorites ? "home" : "home-outline"} size={26} color={!showFavorites ? colors.text : colors.secondaryText} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleToggleReminders}>
-          <Ionicons name={remindersOn ? "notifications" : "notifications-outline"} size={26} color={remindersOn ? colors.text : colors.secondaryText} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setShowFavorites(true)}>
-          <Ionicons name={showFavorites ? "heart" : "heart-outline"} size={26} color={showFavorites ? colors.text : colors.secondaryText} />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -162,144 +198,201 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  backgroundCurve: {
-    position: 'absolute',
-    top: 0,
-    width: width,
-    height: 380,
-    borderBottomRightRadius: 100,
-  },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 15 : 20,
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 12 : 16,
+    paddingBottom: 4,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 18,
   },
-  greetingTitle: {
-    fontSize: 28,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  greetingBlock: {},
+  greetingSmall: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  greetingName: {
+    fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
   },
-  greetingSubtitle: {
-    fontSize: 14,
-    color: '#D1D5DB',
-    marginBottom: 10,
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quoteCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginBottom: 18,
+    borderLeftWidth: 3,
   },
   quoteText: {
     fontSize: 12,
-    color: '#9CA3AF',
     fontStyle: 'italic',
-    marginBottom: 24,
+    flex: 1,
+    lineHeight: 17,
   },
-  tabsContainer: {
+  statsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 16,
+  },
+  statIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
-  tab: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginRight: 8,
   },
-  activeTab: {
-    backgroundColor: '#FFFFFF',
+  countBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
   },
-  tabText: {
-    color: '#A0A0A5',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  activeTabText: {
-    color: '#212C4F',
+  countBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   listContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 120, 
-    paddingTop: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+    paddingTop: 4,
   },
   cardContainer: {
-    borderRadius: 30, 
-    marginBottom: 20,
+    borderRadius: 20,
+    marginBottom: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 8,
-    marginHorizontal: 4,
   },
-  cardContent: {
+  cardImage: {
+    width: '100%',
+    height: 180,
+  },
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    height: 180,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  cardInfo: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
   },
-  thumbnail: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTextContainer: {
+  cardInfoLeft: {
     flex: 1,
-    marginLeft: 16,
-    marginRight: 8,
+    marginRight: 10,
   },
-  exerciseName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
   },
-  exerciseDesc: {
-    fontSize: 13,
+  cardSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.65)',
   },
-  actionsContainer: {
+  cardActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
-  actionIcon: {
+  cardActionBtn: {
     padding: 4,
-    marginLeft: 4,
+  },
+  completedBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   fab: {
     position: 'absolute',
-    right: 24,
-    bottom: 100, 
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    right: 20,
+    bottom: 24,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#C8F560',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    height: 85,
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.4,
     shadowRadius: 10,
-    elevation: 10,
-    paddingBottom: 15,
+    elevation: 8,
   },
-  navItem: {
-    padding: 10,
-  }
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 14,
+    lineHeight: 20,
+  },
 });
